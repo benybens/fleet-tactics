@@ -3,10 +3,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const playerName = urlParams.get("name") || "Empire Anon";
 let myColor = "#ffffff"; // par défaut blanc
 
-
 const socket = io();
-
-// Envoie l'événement de join au serveur
 socket.emit("joinGame", { name: playerName });
 
 console.log("Client.js chargé et prêt !");
@@ -19,17 +16,13 @@ const config = {
   backgroundColor: "#222",
   scene: { create, update }
 };
-
 const game = new Phaser.Game(config);
 
 function create() {
-  this.graphics = this.add.graphics(); // Unique et important !
-
-  // Centre la caméra sur la carte 300x300
+  this.graphics = this.add.graphics();
   this.cameras.main.setZoom(0.5);
   this.cameras.main.centerOn(150, 150);
 
-  // Contrôles caméra
   this.cursors = this.input.keyboard.addKeys({
     up: Phaser.Input.Keyboard.KeyCodes.W,
     down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -37,7 +30,6 @@ function create() {
     right: Phaser.Input.Keyboard.KeyCodes.D
   });
 
-  // Gestion du zoom à la molette
   this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
     const cam = this.cameras.main;
     let newZoom = cam.zoom - deltaY * 0.001;
@@ -49,13 +41,11 @@ function create() {
     cam.scrollY += worldPoint.y - newWorldPoint.y;
   });
 
-  // Clic pour envoyer la target
   this.input.on("pointerdown", (pointer) => {
     const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
     socket.emit("updateTarget", { x: world.x, y: world.y });
   });
 
-  // Bouton Exit
   const exitBtn = document.createElement("button");
   exitBtn.textContent = "Exit";
   exitBtn.style.position = "absolute";
@@ -65,7 +55,6 @@ function create() {
   exitBtn.onclick = () => window.location.href = "/";
   document.body.appendChild(exitBtn);
 
-  // Players list
   const playersList = document.createElement("div");
   playersList.id = "playersList";
   playersList.style.position = "absolute";
@@ -88,39 +77,50 @@ function update() {
   if (this.cursors.right.isDown) cam.scrollX += speed;
 }
 
-// Phrase de statut de connexion
 socket.on("connect", () => {
   const h2 = document.querySelector("h2");
   h2.textContent = `Connecté en tant que ${playerName}`;
-  h2.style.color = myColor; // applique la couleur
+  h2.style.color = myColor;
 });
 
-// Mise à jour de la liste des joueurs et dessin des sphères
-socket.on("playersList", (players) => {
-  console.log("Reçu playersList:", players);
+// Le seul vrai flux de dessin : on utilise "gameState"
+socket.on("gameState", (state) => {
+  const scene = game.scene.scenes[0];
+  scene.graphics.clear();
 
-  // Trouve la couleur de mon joueur (via playerName)
-  const me = players.find(p => p.name === playerName);
-  if (me) {
-    myColor = me.color; // sauvegarde la couleur de mon joueur
-    document.querySelector("h2").style.color = myColor;
-  }
+  // Dessine les scraps
+  state.scraps.forEach(scrap => {
+    scene.graphics.fillStyle(0x0000ff, 1);
+    scene.graphics.fillRect(scrap.x - 5, scrap.y - 5, 10, 10);
+  });
 
-  // Met à jour la liste texte
+  // Dessine les joueurs et leurs boids
+  state.players.forEach(player => {
+    const color = Phaser.Display.Color.HexStringToColor(player.color).color;
+
+    // Joueur principal
+    scene.graphics.fillStyle(color, 1);
+    scene.graphics.fillCircle(player.position.x, player.position.y, 20);
+
+    // Tous ses boids
+    player.boids.forEach(boid => {
+      scene.graphics.fillStyle(color, 1);
+      scene.graphics.fillCircle(boid.x, boid.y, 10); // plus petit pour les boids
+    });
+  });
+
+  // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");
   let html = "<strong>Rank | Name | Boids</strong><br/>";
-  players.forEach((p, i) => {
+  state.players.forEach((p, i) => {
     html += `${i + 1}. ${p.name} (${p.boidsCount})<br/>`;
   });
   div.innerHTML = html;
 
-  // Dessine les sphères
-  const scene = game.scene.scenes[0];
-  scene.graphics.clear();
-
-  players.forEach(player => {
-    const color = Phaser.Display.Color.HexStringToColor(player.color).color;
-    scene.graphics.fillStyle(color, 1);
-    scene.graphics.fillCircle(player.position.x, player.position.y, 20);
-  });
+  // Mets à jour la couleur de la phrase
+  const me = state.players.find(p => p.name === playerName);
+  if (me) {
+    myColor = me.color;
+    document.querySelector("h2").style.color = myColor;
+  }
 });
