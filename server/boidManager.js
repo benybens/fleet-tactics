@@ -1,22 +1,27 @@
 // boidManager.js
 
+const { HOVER_SPEED } = require("./constants");
+
 function addBoidToPlayer(player) {
+    if (player.boids.length >= 10) {
+      console.log(`⛔ Le joueur ${player.name} a déjà 10 boids (max atteint)`);
+      return; // Ne pas ajouter
+    }
+  
     const angle = Math.random() * Math.PI * 2;
     const distance = Math.random() * 50;
-    const speed = (player.speed || 300) / 2;
-  
-    const dynamicRadius = 30 + (player.boids.length * 2); // 💡 ton calcul dynamique
   
     player.boids.push({
       x: player.position.x + Math.cos(angle) * distance,
       y: player.position.y + Math.sin(angle) * distance,
-      targetOffset: { x: 0, y: 0 },
-      speed: speed,
-      radius: dynamicRadius, // 👈 Ajoute la valeur dynamique
-      lastShotTime: 0
+      targetOffset: {
+        x: 0, // sera défini par chooseNewBoidTarget
+        y: 0
+      },
+      speed: HOVER_SPEED
     });
+    console.log(`✅ Boid ajouté à ${player.name}. Total: ${player.boids.length}`);
   }
-
 function adjustBoidRadius(player) {
     const baseDistance = 30;
     const extraPerBoid = 1.01;

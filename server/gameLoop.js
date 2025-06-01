@@ -13,11 +13,10 @@ const {
 function updateGame(io) {
   setInterval(() => {
     updateScraps();
-    updatePlayerMovement(players);
     updateBoidMovements(players);
 
     players.forEach(player => {
-        checkPlayerScrapCollision(player, addBoidToPlayer);
+        // checkPlayerScrapCollision(player, addBoidToPlayer);
         checkBoidScrapCollision(player, addBoidToPlayer);
   
         // Ajoute la logique de tir pour chaque boid !

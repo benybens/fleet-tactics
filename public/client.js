@@ -99,12 +99,16 @@ socket.on("gameState", (state) => {
   state.players.forEach(player => {
     const color = Phaser.Display.Color.HexStringToColor(player.color).color;
 
-    // Joueur principal
-    scene.graphics.fillStyle(color, 1);
-    scene.graphics.fillCircle(player.position.x, player.position.y, 20);
+    // // Joueur principal
+    // scene.graphics.fillStyle(color, 1);
+    // scene.graphics.fillCircle(player.position.x, player.position.y, 20);
 
     // Tous ses boids
     player.boids.forEach(boid => {
+          // Outline blanche
+      scene.graphics.lineStyle(5, 0x000000, 1); // 2px, blanc, opaque
+      scene.graphics.strokeCircle(boid.x, boid.y, 10);
+
       scene.graphics.fillStyle(color, 1);
       scene.graphics.fillCircle(boid.x, boid.y, 10); // plus petit pour les boids
     });
@@ -116,6 +120,14 @@ socket.on("gameState", (state) => {
       scene.graphics.fillStyle(color, 1);
       scene.graphics.fillCircle(proj.x, proj.y, 5); // rayon de 5
     });
+
+    // Dessine la zone d'hover (curseur / centre du joueur)
+state.players.forEach(player => {
+  if (player.id === socket.id) { // Uniquement pour soi
+    scene.graphics.lineStyle(2, 0xffffff, 0.3); // Contour blanc, semi-transparent
+    scene.graphics.strokeCircle(player.position.x, player.position.y, 50);
+  }
+});
 
   // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");

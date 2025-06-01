@@ -2,19 +2,19 @@
 
 const scrapsManager = require("./scrapsManager");
 
-function checkPlayerScrapCollision(player,addBoidCallback) {
-  scrapsManager.getScraps().forEach(scrap => {
-    const dx = player.position.x - scrap.x;
-    const dy = player.position.y - scrap.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < 25) { // Rayon sphère principale + demi-largeur scrap
-      scrapsManager.collectScrap(scrap.id);
-      player.boidsCount++;
-      addBoidCallback(player);
-      return true; // Indique qu’un scrap a été collecté
-    }
-  });
-}
+// function checkPlayerScrapCollision(player,addBoidCallback) {
+//   scrapsManager.getScraps().forEach(scrap => {
+//     const dx = player.position.x - scrap.x;
+//     const dy = player.position.y - scrap.y;
+//     const distance = Math.sqrt(dx * dx + dy * dy);
+//     if (distance < 25) { // Rayon sphère principale + demi-largeur scrap
+//       scrapsManager.collectScrap(scrap.id);
+//       player.boidsCount++;
+//       addBoidCallback(player);
+//       return true; // Indique qu’un scrap a été collecté
+//     }
+//   });
+// }
 
 function checkBoidScrapCollision(player, addBoidCallback) {
   player.boids.forEach(boid => {
@@ -60,7 +60,6 @@ function checkProjectileBoidCollision(projectiles, players) {
 }
 
 module.exports = {
-  checkPlayerScrapCollision,
   checkBoidScrapCollision,
   checkProjectileBoidCollision
 };
