@@ -9,6 +9,9 @@ const {
   checkBoidScrapCollision, 
   checkProjectileBoidCollision 
 } = require("./collisionManager");
+const dcaManager = require("./dcaManager");
+
+
 
 function updateGame(io) {
   setInterval(() => {
@@ -48,6 +51,9 @@ function updateGame(io) {
         });
       });
 
+  dcaManager.updateDCA(players);
+    
+
     // ✅ Récupération directe des projectiles
     const projectiles = getProjectiles();
     checkProjectileBoidCollision(projectiles, players);
@@ -63,12 +69,27 @@ function updateGame(io) {
       boids: p.boids.map(b => ({ x: b.x, y: b.y }))
     }));
 
+    // const gameState = {
+    //     players: safePlayers,
+    //     scraps: getScraps(),
+    //     projectiles: require("./projectileManager").getProjectiles(),
+    //     dca: dcaManager.getDCA()
+    //   };
+      
+    //   // 🚀 DEBUG : vérifie le gameState
+    //   console.log("🟢 gameState envoyé au client:", JSON.stringify(gameState, null, 2));
+      
+
     io.emit("gameState", {
         players: safePlayers,
         scraps: getScraps(),
-        projectiles: require("./projectileManager").getProjectiles()
+        projectiles: require("./projectileManager").getProjectiles(), // 👈 pas de dcaManager.getDCAProjectiles
+        dca: dcaManager.getDCA() // 👈 Tu peux continuer à envoyer la liste des DCA pour les dessiner
       });
+      
   }, 33);
+
+
 }
 
 module.exports = { updateGame };

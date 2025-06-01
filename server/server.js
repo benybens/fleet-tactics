@@ -5,7 +5,7 @@ const socketIo = require("socket.io");
 
 const { initPlayerManager, handleJoin, handleUpdateTarget, handleDisconnect } = require("./playerManager");
 const { updateGame } = require("./gameLoop");
-
+const dcaManager = require("./dcaManager");
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -15,6 +15,9 @@ app.use(express.static("public"));
 // Initialiser le gestionnaire de joueurs et la loop
 initPlayerManager(io);
 updateGame(io);
+
+// Au démarrage
+dcaManager.generateDCA(3); // densité à 20% par exemple
 
 // Connexion socket.io
 io.on("connection", (socket) => {

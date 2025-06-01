@@ -3,24 +3,32 @@
 const { HOVER_SPEED } = require("./constants");
 
 function addBoidToPlayer(player) {
-    if (player.boids.length >= 10) {
-      console.log(`⛔ Le joueur ${player.name} a déjà 10 boids (max atteint)`);
-      return; // Ne pas ajouter
+    // Limite à 10 boids maximum
+    if (player.boids.length >= 10) return;
+  
+    // ✅ Calcule la position moyenne de tous les boids existants
+    let avgX = player.position.x;
+    let avgY = player.position.y;
+    if (player.boids.length > 0) {
+      avgX = player.boids.reduce((sum, b) => sum + b.x, 0) / player.boids.length;
+      avgY = player.boids.reduce((sum, b) => sum + b.y, 0) / player.boids.length;
     }
   
     const angle = Math.random() * Math.PI * 2;
     const distance = Math.random() * 50;
   
+    const targetAngle = Math.random() * Math.PI * 2;
+    const targetDist = Math.random() * 50;
+  
     player.boids.push({
-      x: player.position.x + Math.cos(angle) * distance,
-      y: player.position.y + Math.sin(angle) * distance,
+      x: avgX + Math.cos(angle) * distance,
+      y: avgY + Math.sin(angle) * distance,
       targetOffset: {
-        x: 0, // sera défini par chooseNewBoidTarget
-        y: 0
+        x: Math.cos(targetAngle) * targetDist,
+        y: Math.sin(targetAngle) * targetDist
       },
-      speed: HOVER_SPEED
+      speed: HOVER_SPEED // Par défaut en mode hover
     });
-    console.log(`✅ Boid ajouté à ${player.name}. Total: ${player.boids.length}`);
   }
 function adjustBoidRadius(player) {
     const baseDistance = 30;

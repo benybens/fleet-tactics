@@ -129,6 +129,13 @@ state.players.forEach(player => {
   }
 });
 
+state.dca.forEach(dca => {
+  scene.graphics.fillStyle(0xff0000, 1);
+  scene.graphics.fillRect(dca.x - 15, dca.y - 15, 30, 30);
+});
+
+
+
   // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");
   let html = "<strong>Rank | Name | Boids</strong><br/>";
