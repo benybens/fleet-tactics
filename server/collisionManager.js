@@ -2,7 +2,7 @@
 
 const scrapsManager = require("./scrapsManager");
 
-function checkPlayerScrapCollision(player) {
+function checkPlayerScrapCollision(player,addBoidCallback) {
   scrapsManager.getScraps().forEach(scrap => {
     const dx = player.position.x - scrap.x;
     const dy = player.position.y - scrap.y;
@@ -10,6 +10,7 @@ function checkPlayerScrapCollision(player) {
     if (distance < 25) { // Rayon sphère principale + demi-largeur scrap
       scrapsManager.collectScrap(scrap.id);
       player.boidsCount++;
+      addBoidCallback(player);
       return true; // Indique qu’un scrap a été collecté
     }
   });

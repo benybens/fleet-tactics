@@ -20,8 +20,7 @@ function updatePlayerMovement(players) {
     });
   }
   
-
-function updateBoidMovements(players) {
+  function updateBoidMovements(players) {
     players.forEach(player => {
       player.boids.forEach(boid => {
         const toTargetX = player.position.x + boid.targetOffset.x - boid.x;
@@ -32,7 +31,7 @@ function updateBoidMovements(players) {
         if (dist < moveDist) {
           boid.x = player.position.x + boid.targetOffset.x;
           boid.y = player.position.y + boid.targetOffset.y;
-          chooseNewBoidTarget(boid);
+          chooseNewBoidTarget(boid); // Appelera la version modifiée 👇
         } else {
           boid.x += (toTargetX / dist) * moveDist;
           boid.y += (toTargetY / dist) * moveDist;
@@ -43,7 +42,7 @@ function updateBoidMovements(players) {
   
   function chooseNewBoidTarget(boid) {
     const angle = Math.random() * Math.PI * 2;
-    const distance = Math.random() * 50;
+    const distance = Math.random() * (boid.radius || 50); // 👈 utilise la valeur dynamique si dispo
     boid.targetOffset = {
       x: Math.cos(angle) * distance,
       y: Math.sin(angle) * distance

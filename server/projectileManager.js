@@ -1,14 +1,14 @@
 // projectileManager.js
 const projectiles = [];
+let projectileSpeed = 200;
 
 function createProjectile(from, target, color, ownerId) {
   const dx = target.x - from.x;
   const dy = target.y - from.y;
   const mag = Math.sqrt(dx * dx + dy * dy);
 
-  const speed = 200; // ajustable
-  const vx = (dx / mag) * speed;
-  const vy = (dy / mag) * speed;
+  const vx = (dx / mag) * projectileSpeed;
+  const vy = (dy / mag) * projectileSpeed;
 
   projectiles.push({
     id: Date.now() + Math.random(),

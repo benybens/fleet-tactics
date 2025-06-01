@@ -85,7 +85,7 @@ socket.on("connect", () => {
 
 // Le seul vrai flux de dessin : on utilise "gameState"
 socket.on("gameState", (state) => {
-  console.log("🔵 gameState reçu:", state);
+  // console.log("🔵 gameState reçu:", state);
   const scene = game.scene.scenes[0];
   scene.graphics.clear();
 
@@ -109,6 +109,13 @@ socket.on("gameState", (state) => {
       scene.graphics.fillCircle(boid.x, boid.y, 10); // plus petit pour les boids
     });
   });
+
+    // ✅ Ajoute cette partie pour dessiner les projectiles
+    state.projectiles.forEach(proj => {
+      const color = Phaser.Display.Color.HexStringToColor(proj.color).color;
+      scene.graphics.fillStyle(color, 1);
+      scene.graphics.fillCircle(proj.x, proj.y, 5); // rayon de 5
+    });
 
   // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");

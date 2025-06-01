@@ -120,26 +120,6 @@ server.listen(3000, "0.0.0.0", () => {
 //   io.emit("playersList", players);
 // }
 
-// function addBoidToPlayer(player) {
-//   const angle = Math.random() * Math.PI * 2;
-//   const distance = Math.random() * 50;
-//   const speed = (player.speed || 300) / 2;
-
-//   const targetAngle = Math.random() * Math.PI * 2;
-//   const targetDist = Math.random() * 50;
-
-//   player.boids.push({
-//     x: player.position.x + Math.cos(angle) * distance,
-//     y: player.position.y + Math.sin(angle) * distance,
-//     targetOffset: {
-//       x: Math.cos(targetAngle) * targetDist,
-//       y: Math.sin(targetAngle) * targetDist
-//     },
-//     speed: speed,
-//     lastShotTime: 0 // 🔥 Ajout du cooldown de tir
-//   });
-// }
-
 // function chooseNewBoidTarget(boid) {
 //   const angle = Math.random() * Math.PI * 2;
 //   const distance = Math.random() * 150;
