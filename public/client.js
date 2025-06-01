@@ -1,7 +1,7 @@
 // Récupère le nom depuis l'URL
 const urlParams = new URLSearchParams(window.location.search);
 const playerName = urlParams.get("name") || "Empire Anon";
-let myColor = "#ffffff";
+let myColor = "#ffffff"; // par défaut blanc
 
 const socket = io();
 socket.emit("joinGame", { name: playerName });
@@ -16,7 +16,6 @@ const config = {
   backgroundColor: "#222",
   scene: { create, update }
 };
-
 const game = new Phaser.Game(config);
 
 function create() {
@@ -84,7 +83,9 @@ socket.on("connect", () => {
   h2.style.color = myColor;
 });
 
+// Le seul vrai flux de dessin : on utilise "gameState"
 socket.on("gameState", (state) => {
+  console.log("🔵 gameState reçu:", state);
   const scene = game.scene.scenes[0];
   scene.graphics.clear();
 
@@ -94,37 +95,31 @@ socket.on("gameState", (state) => {
     scene.graphics.fillRect(scrap.x - 5, scrap.y - 5, 10, 10);
   });
 
-  // Dessine les sphères principales
+  // Dessine les joueurs et leurs boids
   state.players.forEach(player => {
     const color = Phaser.Display.Color.HexStringToColor(player.color).color;
+
+    // Joueur principal
     scene.graphics.fillStyle(color, 1);
     scene.graphics.fillCircle(player.position.x, player.position.y, 20);
 
-    // Dessine les boids
+    // Tous ses boids
     player.boids.forEach(boid => {
       scene.graphics.fillStyle(color, 1);
-      scene.graphics.fillCircle(boid.x, boid.y, 10);
+      scene.graphics.fillCircle(boid.x, boid.y, 10); // plus petit pour les boids
     });
   });
 
-  // Dessine les projectiles (laser) en couleur de leur owner
-  state.projectiles.forEach(projectile => {
-    const color = Phaser.Display.Color.HexStringToColor(projectile.color).color;
-    scene.graphics.fillStyle(color, 1);
-    scene.graphics.fillCircle(projectile.x, projectile.y, 5);
-  });
-
-  // Met à jour la liste des joueurs
+  // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");
   let html = "<strong>Rank | Name | Boids</strong><br/>";
   state.players.forEach((p, i) => {
     html += `${i + 1}. ${p.name} (${p.boidsCount})<br/>`;
   });
   div.innerHTML = html;
-});
 
-socket.on("playersList", (players) => {
-  const me = players.find(p => p.name === playerName);
+  // Mets à jour la couleur de la phrase
+  const me = state.players.find(p => p.name === playerName);
   if (me) {
     myColor = me.color;
     document.querySelector("h2").style.color = myColor;
