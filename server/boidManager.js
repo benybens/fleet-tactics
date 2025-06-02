@@ -19,7 +19,7 @@ function addBoidToPlayer(player) {
   
     const targetAngle = Math.random() * Math.PI * 2;
     const targetDist = Math.random() * 50;
-  
+    player.boidsCount++;
     player.boids.push({
       x: avgX + Math.cos(angle) * distance,
       y: avgY + Math.sin(angle) * distance,

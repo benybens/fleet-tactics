@@ -24,7 +24,7 @@ function checkBoidScrapCollision(player, addBoidCallback) {
       const distance = Math.sqrt(dx * dx + dy * dy);
       if (distance < 15) { // Rayon boid + demi-largeur scrap
         scrapsManager.collectScrap(scrap.id);
-        player.boidsCount++;
+        player.scrapsCount++;
         addBoidCallback(player);
       }
     });

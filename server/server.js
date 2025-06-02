@@ -14,6 +14,10 @@ app.use(express.static("public"));
 
 // Initialiser le gestionnaire de joueurs et la loop
 initPlayerManager(io);
+const { generateHeightMap } = require("./mapManager");
+
+// Génère la height map une fois au démarrage
+const heightMap = generateHeightMap();
 updateGame(io);
 
 // Au démarrage
@@ -22,6 +26,8 @@ dcaManager.generateDCA(3); // densité à 20% par exemple
 // Connexion socket.io
 io.on("connection", (socket) => {
   console.log("Joueur connecté :", socket.id);
+    // Envoie la height map dès la connexion
+  socket.emit("initMap", heightMap);
 
   socket.on("joinGame", (data) => handleJoin(socket, data));
   socket.on("updateTarget", (target) => handleUpdateTarget(socket, target));

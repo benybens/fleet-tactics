@@ -1,11 +1,10 @@
-// Récupère le nom depuis l'URL
+// client.js
 const urlParams = new URLSearchParams(window.location.search);
 const playerName = urlParams.get("name") || "Empire Anon";
-let myColor = "#ffffff"; // par défaut blanc
+let myColor = "#ffffff";
 
 const socket = io();
 socket.emit("joinGame", { name: playerName });
-
 console.log("Client.js chargé et prêt !");
 
 // Phaser config
@@ -18,20 +17,24 @@ const config = {
 };
 const game = new Phaser.Game(config);
 
-function create() {
-  this.graphics = this.add.graphics();
-  this.cameras.main.setZoom(0.5);
-  this.cameras.main.centerOn(150, 150);
+let heightMap = null;
+let heightMapTexture = null;
 
-  this.cursors = this.input.keyboard.addKeys({
+function create() {
+  const scene = this;
+  scene.graphics = scene.add.graphics();
+  scene.cameras.main.setZoom(0.5);
+  scene.cameras.main.centerOn(150, 150);
+
+  scene.cursors = scene.input.keyboard.addKeys({
     up: Phaser.Input.Keyboard.KeyCodes.W,
     down: Phaser.Input.Keyboard.KeyCodes.S,
     left: Phaser.Input.Keyboard.KeyCodes.A,
     right: Phaser.Input.Keyboard.KeyCodes.D
   });
 
-  this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
-    const cam = this.cameras.main;
+  scene.input.on("wheel", (pointer, gameObjects, deltaX, deltaY) => {
+    const cam = scene.cameras.main;
     let newZoom = cam.zoom - deltaY * 0.001;
     newZoom = Phaser.Math.Clamp(newZoom, 0.1, 2);
     const worldPoint = cam.getWorldPoint(pointer.x, pointer.y);
@@ -41,8 +44,8 @@ function create() {
     cam.scrollY += worldPoint.y - newWorldPoint.y;
   });
 
-  this.input.on("pointerdown", (pointer) => {
-    const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  scene.input.on("pointerdown", (pointer) => {
+    const world = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
     socket.emit("updateTarget", { x: world.x, y: world.y });
   });
 
@@ -83,68 +86,86 @@ socket.on("connect", () => {
   h2.style.color = myColor;
 });
 
-// Le seul vrai flux de dessin : on utilise "gameState"
+socket.on("initMap", (map) => {
+  console.log("🌍 Height map reçue !");
+  heightMap = map;
+  createHeightMapTexture();
+});
+
+function createHeightMapTexture() {
+  const scene = game.scene.scenes[0];
+  const width = heightMap[0].length;
+  const height = heightMap.length;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const h = heightMap[y][x];
+      let color;
+      if (h <= 0.1) color = "blue";
+      else if (h < 0.2) color = "yellow";
+      else if (h < 0.5) color = "green";
+      else if (h < 0.8) color = "brown";
+      else color = "white";
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  const texture = scene.textures.addCanvas("heightmap", canvas);
+  heightMapTexture = scene.add.image(0, 0, "heightmap").setOrigin(0);
+  heightMapTexture.setDepth(-1); // Derrière tout le reste
+}
+
 socket.on("gameState", (state) => {
-  // console.log("🔵 gameState reçu:", state);
   const scene = game.scene.scenes[0];
   scene.graphics.clear();
 
-  // Dessine les scraps
   state.scraps.forEach(scrap => {
     scene.graphics.fillStyle(0x0000ff, 1);
     scene.graphics.fillRect(scrap.x - 5, scrap.y - 5, 10, 10);
   });
 
-  // Dessine les joueurs et leurs boids
   state.players.forEach(player => {
     const color = Phaser.Display.Color.HexStringToColor(player.color).color;
-
-    // // Joueur principal
-    // scene.graphics.fillStyle(color, 1);
-    // scene.graphics.fillCircle(player.position.x, player.position.y, 20);
-
-    // Tous ses boids
     player.boids.forEach(boid => {
-          // Outline blanche
-      scene.graphics.lineStyle(5, 0x000000, 1); // 2px, blanc, opaque
+      scene.graphics.lineStyle(2, 0xffffff, 1);
       scene.graphics.strokeCircle(boid.x, boid.y, 10);
-
       scene.graphics.fillStyle(color, 1);
-      scene.graphics.fillCircle(boid.x, boid.y, 10); // plus petit pour les boids
+      scene.graphics.fillCircle(boid.x, boid.y, 10);
     });
   });
 
-    // ✅ Ajoute cette partie pour dessiner les projectiles
-    state.projectiles.forEach(proj => {
-      const color = Phaser.Display.Color.HexStringToColor(proj.color).color;
-      scene.graphics.fillStyle(color, 1);
-      scene.graphics.fillCircle(proj.x, proj.y, 5); // rayon de 5
-    });
+  state.projectiles.forEach(proj => {
+    const color = Phaser.Display.Color.HexStringToColor(proj.color).color;
+    scene.graphics.fillStyle(color, 1);
+    scene.graphics.fillCircle(proj.x, proj.y, 5);
+  });
 
-    // Dessine la zone d'hover (curseur / centre du joueur)
-state.players.forEach(player => {
-  if (player.id === socket.id) { // Uniquement pour soi
-    scene.graphics.lineStyle(2, 0xffffff, 0.3); // Contour blanc, semi-transparent
-    scene.graphics.strokeCircle(player.position.x, player.position.y, 50);
-  }
-});
+  // Zone d'hover (curseur)
+  state.players.forEach(player => {
+    if (player.id === socket.id) {
+      scene.graphics.lineStyle(2, 0xffffff, 0.3);
+      scene.graphics.strokeCircle(player.position.x, player.position.y, 50);
+    }
+  });
 
-state.dca.forEach(dca => {
-  scene.graphics.fillStyle(0xff0000, 1);
-  scene.graphics.fillRect(dca.x - 15, dca.y - 15, 30, 30);
-});
+  state.dca.forEach(dca => {
+    scene.graphics.fillStyle(0xff0000, 1);
+    scene.graphics.fillRect(dca.x - 15, dca.y - 15, 30, 30);
+  });
 
-
-
-  // Mets à jour la liste des joueurs
   const div = document.getElementById("playersList");
-  let html = "<strong>Rank | Name | Boids</strong><br/>";
+  let html = "<strong>Rank | Name | Boids | Scraps</strong><br/>";
   state.players.forEach((p, i) => {
-    html += `${i + 1}. ${p.name} (${p.boidsCount})<br/>`;
+    html += `${i + 1}. ${p.name} (${p.boidsCount} boids, ${p.scrapsCount || 0} scraps)<br/>`;
   });
   div.innerHTML = html;
 
-  // Mets à jour la couleur de la phrase
   const me = state.players.find(p => p.name === playerName);
   if (me) {
     myColor = me.color;

@@ -1,6 +1,7 @@
 // server/scrapsManager.js
 const MAX_SCRAPS = 100;
-const MAP_SIZE = 300;
+const { MAP_SIZE } = require("./constants");
+
 
 let scraps = [];
 

@@ -23,6 +23,7 @@ function handleJoin(socket, data) {
       id: socket.id,
       name: data.name,
       boidsCount: 0,
+      scrapsCount:0,
       rank: players.length + 1,
       color: color,
       position: spawnPosition,
